@@ -5,10 +5,39 @@
 #++
 
 module RequireAll
+  # strict_mode
+  #
+  # Enable strict mode to immediately throw exceptions that occur during the
+  # requiring process. This makes it easy to find places where explicit
+  # requires are needed, to ensure direct dependencies are loaded.
+  #
+  # By default, require_all will catch (and swallow) errors such as NameError
+  # that occur when a file is required, but keep track of the files that didn't
+  # load successfully and retry them later.
+  #
+  # This approach, while convenient, can be dangerous and lead to subtle and/or
+  # confusing issues, as it subverts the guarantee of require that a given file
+  # will only be loaded once, a guarantee that code might (fairly) depend on.
+  #
+  # For example, if an error such as a NameError occurs during the require of a
+  # file (because an as yet unloaded constant is referenced) that class ends up
+  # being partially defined - the constant for that class exists, but only the
+  # code up to the point of the error will have run. When that file is required
+  # again (ie when retried) the same code that executed previously will run
+  # _again_ too. This will cause any constants that were already defined in the
+  # class to be redefined (issuing warnings from Ruby) but more seriously, if
+  # another class uses that class in its partially defined state, some code that
+  # it depends on (eg methods being defined) may not exist yet, even though the
+  # constant for the class does. There is no easy way to fix this, as the only
+  # way of seeing what the result of requiring a file would be is to require it!
+  class << self
+    attr_accessor :strict_mode
+  end
+
   # A wonderfully simple way to load your code.
   #
   # The easiest way to use require_all is to just point it at a directory
-  # containing a bunch of .rb files.  These files can be nested under 
+  # containing a bunch of .rb files.  These files can be nested under
   # subdirectories as well:
   #
   #  require_all 'lib'
@@ -16,17 +45,17 @@ module RequireAll
   # This will find all the .rb files under the lib directory and load them.
   # The proper order to load them in will be determined automatically.
   #
-  # If the dependencies between the matched files are unresolvable, it will 
+  # If the dependencies between the matched files are unresolvable, it will
   # throw the first unresolvable NameError.
   #
-  # You can also give it a glob, which will enumerate all the matching files: 
+  # You can also give it a glob, which will enumerate all the matching files:
   #
   #  require_all 'lib/**/*.rb'
   #
   # It will also accept an array of files:
   #
   #  require_all Dir.glob("blah/**/*.rb").reject { |f| stupid_file(f) }
-  # 
+  #
   # Or if you want, just list the files directly as arguments:
   #
   #  require_all 'lib/a.rb', 'lib/b.rb', 'lib/c.rb', 'lib/d.rb'
@@ -100,27 +129,29 @@ module RequireAll
       first_name_error = nil
 
       # Attempt to load each file, rescuing which ones raise NameError for
-      # undefined constants.  Keep trying to successively reload files that 
+      # undefined constants.  Keep trying to successively reload files that
       # previously caused NameErrors until they've all been loaded or no new
       # files can be loaded, indicating unresolvable dependencies.
       files.each do |file_|
         begin
           __require(options[:method], file_)
         rescue NameError => ex
+          __raise_if_strict_mode(ex, options)
           failed << file_
           first_name_error ||= ex
         rescue ArgumentError => ex
+          __raise_if_strict_mode(ex, options)
           # Work around ActiveSuport freaking out... *sigh*
           #
           # ActiveSupport sometimes throws these exceptions and I really
           # have no idea why.  Code loading will work successfully if these
-          # exceptions are swallowed, although I've run into strange 
+          # exceptions are swallowed, although I've run into strange
           # nondeterministic behaviors with constants mysteriously vanishing.
-          # I've gone spelunking through dependencies.rb looking for what 
-          # exactly is going on, but all I ended up doing was making my eyes 
+          # I've gone spelunking through dependencies.rb looking for what
+          # exactly is going on, but all I ended up doing was making my eyes
           # bleed.
           #
-          # FIXME: If you can understand ActiveSupport's dependencies.rb 
+          # FIXME: If you can understand ActiveSupport's dependencies.rb
           # better than I do I would *love* to find a better solution
           raise unless ex.message["is not missing constant"]
 
@@ -141,16 +172,19 @@ module RequireAll
     true
   end
 
-  # Works like require_all, but paths are relative to the caller rather than 
+  # Works like require_all, but paths are relative to the caller rather than
   # the current working directory
   def require_rel(*paths)
     # Handle passing an array as an argument
     paths.flatten!
     return false if paths.empty?
 
+    options = {}
+    options.merge!(paths.pop) if paths.last.is_a?(Hash)
+
     source_directory = File.dirname caller.first.sub(/:\d+$/, '')
     paths.each do |path|
-      require_all File.join(source_directory, path)
+      require_all File.join(source_directory, path), options
     end
   end
 
@@ -241,6 +275,10 @@ module RequireAll
 
   def __require(method, file)
     Kernel.send(method, file)
+  end
+
+  def __raise_if_strict_mode(ex, options)
+    raise ex if RequireAll.strict_mode || options[:strict_mode]
   end
 
   def __autoload(file, full_path, options)
