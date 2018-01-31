@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/autoload_shared.rb'
 describe "autoload_all" do
 
   subject { self }
-
+  
   it "provides require_all functionality by using 'autoload' instead of 'require'" do
     is_expected.not_to be_loaded("Autoloaded::Module1::A", "Autoloaded::Module2::LongerName", "Autoloaded::Module2::Module3::B")
     autoload_all fixture_path('autoloaded')
