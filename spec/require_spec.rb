@@ -13,7 +13,7 @@ shared_examples_for 'strict mode' do |method, fixture_method|
 
       it "can require resolvable dependencies when there are no errors raised" do
         with_strict_mode do
-          fixture = send(fixture_method, 'resolvable_with_strict_mode/*.rb')
+          fixture = send(fixture_method, 'resolvable_with_strict_mode')
           send(method, fixture)
           is_expected.to be_loaded("A", "B", "C", "D")
         end
@@ -21,7 +21,7 @@ shared_examples_for 'strict mode' do |method, fixture_method|
 
       it "raises errors when they occur" do
         with_strict_mode do
-          fixture = send(fixture_method, 'resolvable/*.rb')
+          fixture = send(fixture_method, 'resolvable')
           expect do
             send(method, fixture)
           end.to raise_error(NameError)
@@ -31,13 +31,13 @@ shared_examples_for 'strict mode' do |method, fixture_method|
 
     context 'using options on method call' do
       it "can require resolvable dependencies when there are no errors raised" do
-        fixture = send(fixture_method, 'resolvable_with_strict_mode/*.rb')
+        fixture = send(fixture_method, 'resolvable_with_strict_mode')
         send(method, fixture, :strict_mode => true)
         is_expected.to be_loaded("A", "B", "C", "D")
       end
 
       it "raises errors when they occur" do
-        fixture = send(fixture_method, 'resolvable/*.rb')
+        fixture = send(fixture_method, 'resolvable')
         expect do
           send(method, fixture, :strict_mode => true)
         end.to raise_error(NameError)
