@@ -29,7 +29,7 @@ describe "autoload_all" do
     autoload_all fixture_path('autoloaded/module1')
     is_expected.not_to be_loaded("Autoloaded::Module1::A", "Autoloaded::Module2::LongerName", "Autoloaded::Module2::Module3::B")
 
-    autoload_all fixture_path('autoloaded/module1'), :base_dir => fixture_path('autoloaded')
+    autoload_all fixture_path('autoloaded/module1'), base_dir: fixture_path('autoloaded')
     is_expected.to be_loaded("Autoloaded::Module1::A")
     is_expected.not_to be_loaded("Autoloaded::Module2::LongerName", "Autoloaded::Module2::Module3::B")
   end
@@ -57,7 +57,7 @@ describe "autoload_rel" do
     autoload_rel relative_fixture_path('autoloaded/module1')
     is_expected.not_to be_loaded("Autoloaded::Module1::A", "Autoloaded::Module2::LongerName", "Autoloaded::Module2::Module3::B")
 
-    autoload_rel relative_fixture_path('autoloaded/module1'), :base_dir => fixture_path('autoloaded')
+    autoload_rel relative_fixture_path('autoloaded/module1'), base_dir: fixture_path('autoloaded')
     is_expected.to be_loaded("Autoloaded::Module1::A")
     is_expected.not_to be_loaded("Autoloaded::Module2::LongerName", "Autoloaded::Module2::Module3::B")
   end
