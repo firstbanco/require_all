@@ -92,51 +92,9 @@ module RequireAll
       return true
     end
 
-    files.map! { |file_| File.expand_path file_ }
-    files.sort!
-
-    begin
-      failed = []
-      first_name_error = nil
-
-      # Attempt to load each file, rescuing which ones raise NameError for
-      # undefined constants.  Keep trying to successively reload files that 
-      # previously caused NameErrors until they've all been loaded or no new
-      # files can be loaded, indicating unresolvable dependencies.
-      files.each do |file_|
-        begin
-          __require(options[:method], file_)
-        rescue NameError => ex
-          failed << file_
-          first_name_error ||= ex
-        rescue ArgumentError => ex
-          # Work around ActiveSuport freaking out... *sigh*
-          #
-          # ActiveSupport sometimes throws these exceptions and I really
-          # have no idea why.  Code loading will work successfully if these
-          # exceptions are swallowed, although I've run into strange 
-          # nondeterministic behaviors with constants mysteriously vanishing.
-          # I've gone spelunking through dependencies.rb looking for what 
-          # exactly is going on, but all I ended up doing was making my eyes 
-          # bleed.
-          #
-          # FIXME: If you can understand ActiveSupport's dependencies.rb 
-          # better than I do I would *love* to find a better solution
-          raise unless ex.message["is not missing constant"]
-
-          STDERR.puts "Warning: require_all swallowed ActiveSupport 'is not missing constant' error"
-          STDERR.puts ex.backtrace[0..9]
-        end
-      end
-
-      # If this pass didn't resolve any NameErrors, we've hit an unresolvable
-      # dependency, so raise one of the exceptions we encountered.
-      if failed.size == files.size
-        raise first_name_error
-      else
-        files = failed
-      end
-    end until failed.empty?
+    files.map { |file_| File.expand_path file_ }.sort.each do |file_|
+      __require(options[:method], file_)
+    end
 
     true
   end
