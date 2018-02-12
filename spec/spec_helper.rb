@@ -2,7 +2,7 @@ require "simplecov"
 require "coveralls"
 
 SimpleCov.formatter = Coveralls::SimpleCov::Formatter
-SimpleCov.start 
+SimpleCov.start
 
 require File.dirname(__FILE__) + '/../lib/require_all.rb'
 

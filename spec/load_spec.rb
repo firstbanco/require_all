@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/spec_helper.rb'
 require File.dirname(__FILE__) + '/require_shared.rb'
 
 describe "load_all" do
-  
+
   subject { self }
 
   it "provides require_all functionality but using 'load' instead of 'require'" do
