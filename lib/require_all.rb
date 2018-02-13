@@ -5,6 +5,8 @@
 #++
 
 module RequireAll
+  RequireError = Class.new(StandardError)
+
   # A wonderfully simple way to load your code.
   #
   # The easiest way to use require_all is to just point it at a directory
@@ -14,10 +16,9 @@ module RequireAll
   #  require_all 'lib'
   #
   # This will find all the .rb files under the lib directory and load them.
-  # The proper order to load them in will be determined automatically.
   #
-  # If the dependencies between the matched files are unresolvable, it will 
-  # throw the first unresolvable NameError.
+  # If a file required by require_all references a constant that is not yet
+  # loaded, a RequireAll::RequireError will be thrown.
   #
   # You can also give it a glob, which will enumerate all the matching files: 
   #
@@ -93,7 +94,13 @@ module RequireAll
     end
 
     files.map { |file_| File.expand_path file_ }.sort.each do |file_|
-      __require(options[:method], file_)
+      begin
+        __require(options[:method], file_)
+      rescue NameError => e
+        # Only wrap NameError exceptions for uninitialized constants
+        raise e unless e.instance_of?(NameError) && e.message.include?('uninitialized constant')
+        raise RequireError, "Could not require #{file_} (#{e}). Please require the necessary files"
+      end
     end
 
     true

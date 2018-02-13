@@ -54,9 +54,10 @@ to the current file (`__FILE__`) as opposed to loading files relative from the w
 
 `load_all` and `load_rel` methods also exist to use `Kernel#load` instead of `Kernel#require`!
 
-The proper order to in which to load files is determined automatically for you.
- 
-It's just that easy!  Code loading shouldn't be hard.
+Files are required in alphabetical order and if there are files in nested directories, they are
+required depth-first. If a `NameError` caused by a reference to an uninitialised constant is
+encountered during the requiring process, then a `RequireAll::RequireError` will be be thrown,
+indicating the file that needs the dependency adding to.
 
 ## autoload_all
 
@@ -98,6 +99,18 @@ autoload_rel "dir2/my_file.rb", base_dir: File.dirname(__FILE__) + "/../dir1"
 
 If having some problems with `autoload_all` or `autoload_rel` then set `$DEBUG=true` to see how files
 are mapped to their respective modules and classes.
+
+## Version compatibility and upgrading
+
+Prior to version 2, RequireAll attempted to automatically resolve dependencies between files, thus
+allowing them to be required in any order. Whilst convenient, the approach used (of rescuing
+`NameError`s and later retrying files that failed to load) was fundamentally unsafe and can result
+in incorrect behaviour (for example issue #8, plus more detail and discussion in #21).
+
+As of version 2, RequireAll will raise a `RequireAll::RequireError` if it encounters a `NameError`
+caused by a reference to an uninitialised constant during the requiring process. As such, it is not
+backwards compatible, but simple to upgrade by adding any requires to load dependencies in files
+that need them.
 
 ## Questions? Comments? Concerns?
 
