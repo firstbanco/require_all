@@ -56,7 +56,7 @@ to the current file (`__FILE__`) as opposed to loading files relative from the w
 
 Files are required in alphabetical order and if there are files in nested directories, they are
 required depth-first. If a `NameError` caused by a reference to an uninitialised constant is
-encountered during the requiring process, then a `RequireAll::RequireError` will be be thrown,
+encountered during the requiring process, then a `RequireAll::RequireError` will be thrown,
 indicating the file that needs the dependency adding to.
 
 ## autoload_all
@@ -88,7 +88,7 @@ autoload_all File.dirname(__FILE__) + "/dir1"
 autoload_all File.dirname(__FILE__) + "/dir2/my_file.rb",
              base_dir: File.dirname(__FILE__) + "/../dir1"
 ```
-  
+
 * All namespaces will be created dynamically by `autoload_all` - this means that `defined?(Dir1)` will
   return `"constant"` even if `my_file.rb` is not yet loaded!
 
