@@ -14,10 +14,10 @@ describe "require_all" do
   end
 
   context "errors" do
-    it "raises RequireError if files do not declare their dependencies" do
+    it "raises RequireAll:LoadError if files do not declare their dependencies" do
       expect do
         require_all fixture_path('unresolvable/*.rb')
-      end.to raise_error(RequireError) do |error|
+      end.to raise_error(RequireAll::LoadError) do |error|
         expect(error.cause).to be_a NameError
         expect(error.message).to match /Please require the necessary files/
       end

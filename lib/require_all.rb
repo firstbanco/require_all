@@ -5,7 +5,7 @@
 #++
 
 module RequireAll
-  RequireError = Class.new(StandardError)
+  LoadError = Class.new(::LoadError)
 
   # A wonderfully simple way to load your code.
   #
@@ -18,7 +18,7 @@ module RequireAll
   # This will find all the .rb files under the lib directory and load them.
   #
   # If a file required by require_all references a constant that is not yet
-  # loaded, a RequireAll::RequireError will be thrown.
+  # loaded, a RequireAll::LoadError will be thrown.
   #
   # You can also give it a glob, which will enumerate all the matching files: 
   #
@@ -99,7 +99,7 @@ module RequireAll
       rescue NameError => e
         # Only wrap NameError exceptions for uninitialized constants
         raise e unless e.instance_of?(NameError) && e.message.include?('uninitialized constant')
-        raise RequireError, "Could not require #{file_} (#{e}). Please require the necessary files"
+        raise LoadError, "Could not require #{file_} (#{e}). Please require the necessary files"
       end
     end
 

@@ -5,6 +5,13 @@
 
 A wonderfully simple way to load your code.
 
+Tired of futzing around with `require` statements everywhere, littering your code
+with `require File.dirname(__FILE__)` crap?  What if you could just
+point something at a big directory full of code and have everything just
+automagically load?
+
+Wouldn't that be nice?  Well, now you can!
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -56,7 +63,7 @@ to the current file (`__FILE__`) as opposed to loading files relative from the w
 
 Files are required in alphabetical order and if there are files in nested directories, they are
 required depth-first. If a `NameError` caused by a reference to an uninitialised constant is
-encountered during the requiring process, then a `RequireAll::RequireError` will be thrown,
+encountered during the requiring process, then a `RequireAll::LoadError` will be thrown,
 indicating the file that needs the dependency adding to.
 
 ## autoload_all
@@ -102,15 +109,10 @@ are mapped to their respective modules and classes.
 
 ## Version compatibility and upgrading
 
-Prior to version 2, RequireAll attempted to automatically resolve dependencies between files, thus
-allowing them to be required in any order. Whilst convenient, the approach used (of rescuing
-`NameError`s and later retrying files that failed to load) was fundamentally unsafe and can result
-in incorrect behaviour (for example issue #8, plus more detail and discussion in #21).
-
-As of version 2, RequireAll will raise a `RequireAll::RequireError` if it encounters a `NameError`
+As of version 2, RequireAll will raise a `RequireAll::LoadError` if it encounters a `NameError`
 caused by a reference to an uninitialised constant during the requiring process. As such, it is not
-backwards compatible, but simple to upgrade by adding any requires to load dependencies in files
-that need them.
+backwards compatible with version 1.x, but simple to upgrade by adding any requires to load
+dependencies in files that need them. See [CHANGES] for more details.
 
 ## Questions? Comments? Concerns?
 
